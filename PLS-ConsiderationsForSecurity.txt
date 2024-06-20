@@ -1,0 +1,13 @@
+Security Considerations: 
+
+1. prevent/mitigate data breaches
+2. addressing internal and external threats to data confidentality and integrity
+3. any other recommendations as deemed appropriate
+
+Firstly regarding prevention measures - ensuring that the IAM policies in place for the architecture explicitly define the buckets that which Lambda functions will execute and within the Lambda function specify AWS secrets key name rather than using the actual S3 bucket key. Using the AWS secrets ensures in the case of a break-in or exposure of information that the password for the DataLake or other buckets are rotated. Furthermore, using separate buckets for the sorting of data that are not on load-balancers unlike the DataLake bucket will ensure in the case of a breach that only recently uploaded documents are seen. 
+
+The DataLake bucket cadence for Lambda execution is every hour in order to reduce cost, as malicious actors may attempt push several documents into the bucket where if the function executes every time a document enters the bucket, would cause an execution. Another reason to use eventbridge for the hourly execution is also to integrate with Slack or a mailing provider like Outlook to notify admins of healthy executions or of any issues that have occurred, which saves time rather than reviewing CloudWatch app for issues that may have occurred in execution.
+
+Regarding internal threats, it is important to validate within the engineering team which users would have control over what applications, such as sagemaker, lambda, s3, etc. To this end, ensuring that a strict IAM policy for users is set based on least privileged access is best practice - rather than giving users several unnecessary permissions not required for their day to day operations. Any deviation from standard permissions should require a form submission and verification by a manager for changes to permissions. Regarding external threats, users should be trained when managing AWS keys to never publish them or save on their computer, and utilize vaults such as AWS Secrets Manager or Hashicorp Vault, that way passwords to S3 buckets are rotated. 
+
+Other recommendations I would have regarding data management for the organization would include use of AWS GuardDuty to validate documents coming in and examine for malicious materials or executables. The AWS Lambda function should explicitly state what documents will be processed and any other filetypes should be moved to another bucket and notifying an admin to review the contents of such via GuardDuty. 

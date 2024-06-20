@@ -1,0 +1,75 @@
+AWS Lambda IAM Role
+
+Purpose: allow AWS Lambda Function to Execute on AWS S3 Bucket “DataLake” and allow movement from “DataLake” to either “Data-Confidential” or “Data-Public"
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DataLake Data Grab",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:AmazonS3ObjectLambdaExecutionRolePolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::DataLake/*"
+      ]
+    }, {
+       "Sid": "Data-Confidential Data Drop"
+       "Action": [
+       "S3:PutObject",
+       "s3:AmazonS3ObjectLambdaExecutionRolePolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+         "arn:aws:s3:::Data-Confidential/*"
+       ]
+    }, {
+       "Sid": "Data-Public Data Drop"
+       "Action": [
+         "s3:PutObject",
+         "s3:AmazonS3ObjectLambdaExecutionRolePolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+          "arn:aws:s3:::Data-Public/*"
+       ]
+    }
+  ]
+}
+
+AWS SageMaker IAM Role
+
+IAM Role to allow SageMaker machines to grab data from Data-Confidential or Data-Public if they have appropriate Tag "Confidential"
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SageMaker Public Access",
+      "Action": [
+      "sagemaker:*",
+      "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+         "arn:aws:s3:::Data-Public/*"
+      ]
+    }, {
+       "Sid": SageMaker Confidential Access"
+       "Action": [
+       "sagemaker:*",
+       "s3:GetObject"
+       ],
+       "Condition": {
+				"StringEquals": {
+					"aws:TagKeys": "confidential"
+				}
+		},
+       "Effect": "Allow",
+       "Resource": [
+          "arn:aws:s3:::Data-Confidential/*"
+       ]
+    }
